@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Socket Emiiter </title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://unpkg.com/vue"></script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body >
+    <div class="container" id="app">
+        <p class="headline text-center text-muted h4 mx-auto " id="title">Socket Emmiter v0.1</p>
+        <hr>
+        <div class="form-group row">
+          <input class="form-control"  id="channel_name" name="channel_name"  v-model="channel_name" placeholder="New Channel">
+        </div>
+        <div class="form-group row">
+          <textarea class="form-control"  id="emit_data" name="emit_data" v-model="emit_data" placeholder="add multiple lines"></textarea>
+        </div>
+        <div class="form-group row">
+          <input class="form-control btn btn-primary"  id="submitButton" type="submit" value="Emit" v-on:click="save()">
+        </div>
+
+
+        <table class="table table-inverse"  >
+          <thead>
+            <tr>
+              <th>data</th>
+              <th>Date/Time</th>
+              <th>Original Object</th>
+              <th>Channel</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in message" >
+              <td>{{ item.content }}</td>
+              <td>{{ item.at }}</td>
+              <td>{{ item }}</td>
+              <td>{{ channel[index] }}</td>
+              <td>{{ emit_type[index] }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+    </div>
+
+
+  </body>
+</html>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+<script>
+var currentdate = new Date();
+var datetime = "Last Sync: " + currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/"
+                + currentdate.getFullYear() + " @ "
+                + currentdate.getHours() + ":"
+                + currentdate.getMinutes() + ":"
+                + currentdate.getSeconds();
+var socket = io.connect('http://localhost:3000');
+var app = new Vue({
+    el: '#app',
+      data: {
+      message: [],
+      channel: [],
+      emit_data: [],
+      channel_name: [],
+      emit_type : []
+    },
+      methods: {
+        save: function (){
+        var emit_data = this.emit_data;
+        var channel_name = this.channel_name;
+        var emit_type = 'Sent'
+        app.message.push({content: emit_data , at: datetime})
+        app.channel.push(channel_name)
+        app.emit_type.push(emit_type)
+          socket.emit(channel_name , { content: emit_data });
+        },
+      }
+  })
+
+socket.on('view_emmit', function (data) {
+  app.message.push(data)
+  app.channel.push('view_emmit')
+  app.emit_type.push('received')
+});
+</script>
